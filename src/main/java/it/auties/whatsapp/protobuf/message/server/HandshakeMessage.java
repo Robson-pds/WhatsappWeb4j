@@ -2,9 +2,9 @@ package it.auties.whatsapp.protobuf.message.server;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyDescription;
-import it.auties.whatsapp.protobuf.beta.ClientFinish;
-import it.auties.whatsapp.protobuf.beta.ClientHello;
-import it.auties.whatsapp.protobuf.beta.ServerHello;
+import it.auties.whatsapp.protobuf.temp.ClientFinish;
+import it.auties.whatsapp.protobuf.temp.ClientHello;
+import it.auties.whatsapp.protobuf.temp.ServerHello;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

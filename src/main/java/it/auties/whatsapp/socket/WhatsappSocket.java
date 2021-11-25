@@ -7,7 +7,7 @@ import it.auties.whatsapp.binary.BinaryEncoder;
 import it.auties.whatsapp.binary.BinaryMessage;
 import it.auties.whatsapp.manager.WhatsappKeys;
 import it.auties.whatsapp.protobuf.contact.ContactId;
-import it.auties.whatsapp.protobuf.beta.*;
+import it.auties.whatsapp.protobuf.temp.*;
 import it.auties.whatsapp.protobuf.message.server.HandshakeMessage;
 import it.auties.whatsapp.utils.*;
 import it.auties.whatsapp.api.WhatsappConfiguration;

@@ -35,13 +35,13 @@ public class Nodes {
         }
 
         if (!(list.get(1) instanceof String attrs)) {
-            throw new IllegalArgumentException("WhatsappAPI: Cannot parse %s as a WhatsappNode, no attrs found".formatted(list));
+            throw new IllegalArgumentException("WhatsappAPI: Cannot parse %s as a WhatsappNode, no attributes found".formatted(list));
         }
 
         try {
             return new Node(description, parseAttributesFromString(attrs), JACKSON.writeValueAsString(list.get(2)));
         }catch (JsonProcessingException exception){
-            throw new IllegalArgumentException("Cannot parse node from list", exception);
+            throw new IllegalArgumentException("Cannot parse body from list", exception);
         }
     }
 

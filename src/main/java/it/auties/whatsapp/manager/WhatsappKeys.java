@@ -89,7 +89,7 @@ public class WhatsappKeys {
      * The user using these keys
      */
     @JsonProperty
-    private ContactId me;
+    private ContactId user;
 
     /**
      * Whether these keys have generated pre keys assigned to them
@@ -98,23 +98,19 @@ public class WhatsappKeys {
     private boolean preKeys;
 
     /**
-     * The write key
+     * Session dependent keys to write and read cyphered messages
      */
-    private BinaryArray writeKey;
+    private BinaryArray writeKey, readKey;
 
     /**
-     * The read key
-     */
-    private BinaryArray readKey;
-
-    /**
-     * Populates this object's fields with deserialized data
+     * Returns the keys saved in memory or constructs a new clean instance
      *
-     * @return this object for chaining
+     * @return a non-null instance of WhatsappKeys
      */
-    public static Optional<WhatsappKeys> fromMemory(){
+    public static WhatsappKeys fromMemory(){
         return Optional.ofNullable(Preferences.userRoot().get(PREFERENCES_PATH, null))
-                .map(WhatsappKeys::deserializeOrThrow);
+                .map(WhatsappKeys::deserializeOrThrow)
+                .orElse(new WhatsappKeys());
     }
 
     @SneakyThrows
@@ -129,18 +125,46 @@ public class WhatsappKeys {
 
     public WhatsappKeys() {
         this.clientId = BinaryArray.random(16).toBase64();
-        this.keyPair = CypherUtils.randomKeyPair();
-        this.ephemeralKeyPair = MultiDeviceCypher.createKeyPair();
-        this.signedIdentityKey = MultiDeviceCypher.createKeyPair();
-        this.signedPreKey = MultiDeviceCypher.generateSignedPreKey(signedIdentityKey());
+        this.keyPair = CipherUtils.randomKeyPair();
+        this.ephemeralKeyPair = CipherUtils.createKeyPair();
+        this.signedIdentityKey = CipherUtils.createKeyPair();
+        this.signedPreKey = CipherUtils.generateSignedPreKey(signedIdentityKey());
         this.id = KeyHelper.generateRegistrationId(false);
         this.advSecretKey = Base64.getEncoder().encodeToString(KeyHelper.generateSenderKey());
     }
 
-    public WhatsappKeys initializeKeys(@NonNull BinaryArray writeKey, @NonNull BinaryArray readKey){
-        return readKey(readKey)
-                .writeKey(writeKey)
-                .save();
+    /**
+     * Serializes this object to a json and saves it in memory
+     */
+    public void save(){
+        try {
+            Preferences.userRoot().put(PREFERENCES_PATH, JACKSON.writeValueAsString(this));
+        } catch (JsonProcessingException exception) {
+            throw new RuntimeException("Cannot save keys to memory", exception);
+        }
+    }
+
+    /**
+     * Clears the signal keys associated with this object
+     */
+    public void clear() {
+        writeKey(null).readKey(null);
+    }
+
+    /**
+     * Clears all the keys from this machine's memory.
+     * This method doesn't clear this object's values.
+     */
+    public void delete() {
+        try {
+            Preferences.userRoot().clear();
+        }catch (BackingStoreException exception){
+            throw new RuntimeException("Cannot delete keys from memory", exception);
+        }
+    }
+
+    public void initializeKeys(@NonNull BinaryArray writeKey, @NonNull BinaryArray readKey){
+        readKey(readKey).writeKey(writeKey).save();
     }
 
     /**
@@ -148,37 +172,7 @@ public class WhatsappKeys {
      *
      * @return true if both the serverToken and clientToken are not null
      */
-    public boolean mayRestore() {
-        return me != null;
-    }
-
-    /**
-     * Serializes this object to a json and saves it in memory
-     *
-     * @return this object for chaining
-     */
-    public WhatsappKeys save(){
-        try {
-            Preferences.userRoot().put(PREFERENCES_PATH, JACKSON.writeValueAsString(this));
-            return this;
-        } catch (JsonProcessingException exception) {
-            throw new RuntimeException("Cannot save keys to memory", exception);
-        }
-    }
-
-
-    /**
-     * Clears all the keys from this machine's memory.
-     * This method doesn't clear this object's values.
-     *
-     * @return this object for chaining
-     */
-    public WhatsappKeys clear() {
-        try {
-            Preferences.userRoot().clear();
-            return this;
-        }catch (BackingStoreException exception){
-            throw new RuntimeException("Cannot delete keys from memory", exception);
-        }
+    public boolean hasUser() {
+        return user != null;
     }
 }

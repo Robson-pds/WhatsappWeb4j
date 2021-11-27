@@ -1,6 +1,11 @@
 package it.auties.whatsapp.utils;
 
 import it.auties.whatsapp.binary.BinaryArray;
+import it.auties.whatsapp.binary.BinaryBuffer;
+import it.auties.whatsapp.binary.BinaryDecoder;
+import it.auties.whatsapp.protobuf.model.IdentityKeyPair;
+import it.auties.whatsapp.protobuf.model.Node;
+import it.auties.whatsapp.protobuf.model.SignedKeyPair;
 import lombok.NonNull;
 import lombok.SneakyThrows;
 import lombok.experimental.UtilityClass;
@@ -11,13 +16,16 @@ import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
 import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
 import org.bouncycastle.crypto.params.X25519PublicKeyParameters;
 import org.bouncycastle.crypto.util.PublicKeyFactory;
+import org.whispersystems.curve25519.Curve25519;
+import org.whispersystems.libsignal.ecc.DjbECPrivateKey;
+import org.whispersystems.libsignal.ecc.DjbECPublicKey;
+import org.whispersystems.libsignal.util.KeyHelper;
 
 import javax.crypto.Cipher;
 import javax.crypto.KeyAgreement;
 import javax.crypto.Mac;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
-import java.net.http.HttpClient;
 import java.security.*;
 import java.security.interfaces.XECPrivateKey;
 import java.security.spec.PKCS8EncodedKeySpec;
@@ -27,10 +35,13 @@ import java.util.Objects;
 /**
  * This utility class provides helper functionality to easily encrypt and decrypt data
  * This class should only be used for WhatsappWeb's WebSocket binary operations
+ *
+ * TODO: Refactor and migrate off curve25519 library
  */
 @UtilityClass
-public class CypherUtils {
-    private final HttpClient CLIENT = HttpClient.newHttpClient();
+public class CipherUtils {
+    private final BinaryDecoder DECODER = new BinaryDecoder();
+    private final byte[] HANDSHAKE_PROLOGUE = new byte[]{87, 65, 5, 2};
     private final String XDH = "XDH";
     private final String CURVE = "X25519";
     private final String HMAC_SHA256 = "HmacSHA256";
@@ -176,5 +187,46 @@ public class CypherUtils {
     @SneakyThrows
     public BinaryArray sha256(@NonNull BinaryArray data) {
         return BinaryArray.of(sha256(data.data()));
+    }
+
+    public byte[] handshakePrologue(){
+        return HANDSHAKE_PROLOGUE;
+    }
+
+    public Node decipherMessage(byte @NonNull [] message, @NonNull BinaryArray readKey, long iv){
+        var aes = new AesGmc();
+        aes.initialize(readKey.data(), null, iv, false);
+        var plainText = aes.processBytes(message);
+        return DECODER.decode(DECODER.unpack(plainText));
+    }
+
+    public BinaryArray cipherMessage(byte @NonNull [] message, BinaryArray writeKey, long iv) {
+        var result = prepareMessageCipher(message, writeKey, iv);
+        return new BinaryBuffer()
+                .writeBytes(iv == 0 ? handshakePrologue() : new byte[0])
+                .writeUInt8(result.length >> 16)
+                .writeUInt16(65535 & result.length)
+                .writeBytes(result)
+                .readWrittenBytesToArray();
+    }
+
+    private byte[] prepareMessageCipher(byte[] message, BinaryArray writeKey, long iv) {
+        var aes = new AesGmc();
+        aes.initialize(writeKey.data(), null, iv, true);
+        return aes.processBytes(message);
+    }
+
+    public IdentityKeyPair createKeyPair() {
+        var pair = KeyHelper.generateSenderSigningKey();
+        var publicKey = ((DjbECPublicKey) pair.getPublicKey()).getPublicKey();
+        var privateKey = ((DjbECPrivateKey) pair.getPrivateKey()).getPrivateKey();
+        return new IdentityKeyPair(publicKey, privateKey);
+    }
+
+    public SignedKeyPair generateSignedPreKey(IdentityKeyPair identityKeyPair) {
+        var keyPair = createKeyPair();
+        var publicKey = BinaryArray.of((byte) 5).append(keyPair.publicKey()).data();
+        var signature = Curve25519.getInstance(Curve25519.BEST).calculateSignature(identityKeyPair.privateKey(), publicKey);
+        return new SignedKeyPair(1, keyPair, signature);
     }
 }

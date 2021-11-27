@@ -85,6 +85,10 @@ public class WhatsappUtils {
         return jid.contains("-") || jid.contains("g.us");
     }
 
+    public String readNullableId(@NonNull Node node){
+        return (String) node.attributes().get("id");
+    }
+
     /**
      * Returns a List of WhatsappNodes that represent {@code contacts}
      *

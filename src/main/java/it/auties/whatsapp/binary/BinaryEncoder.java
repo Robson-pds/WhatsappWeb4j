@@ -171,7 +171,7 @@ public record BinaryEncoder(BinaryBuffer binary){
     }
 
     private void writeAttributes(Node input) {
-        input.attrs().forEach((key, value) -> {
+        input.attributes().forEach((key, value) -> {
             writeString(key);
             write(value);
         });

@@ -2,17 +2,17 @@ package it.auties.whatsapp.socket;
 
 import it.auties.whatsapp.binary.BinaryArray;
 import it.auties.whatsapp.manager.WhatsappKeys;
-import it.auties.whatsapp.utils.CypherUtils;
-import it.auties.whatsapp.utils.MultiDeviceCypher;
+import it.auties.whatsapp.utils.AesGmc;
+import it.auties.whatsapp.utils.CipherUtils;
 import lombok.*;
-import org.bouncycastle.util.Arrays;
 
 import static it.auties.whatsapp.binary.BinaryArray.empty;
 import static it.auties.whatsapp.binary.BinaryArray.of;
 
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @NoArgsConstructor
-public class NoiseHandshake implements Cloneable {
+public class NoiseHandshake {
+    private static final BinaryArray PROTOCOL = BinaryArray.of("Noise_XX_25519_AESGCM_SHA256\0\0\0\0");
     private WhatsappKeys keys;
     private BinaryArray hash;
     private BinaryArray salt;
@@ -20,31 +20,32 @@ public class NoiseHandshake implements Cloneable {
     private long counter;
 
     public void start(WhatsappKeys keys){
-        var encodedProtocol = of(MultiDeviceCypher.handshakeProtocol());
-        this.hash = encodedProtocol;
-        this.salt = encodedProtocol;
-        this.cryptoKey = encodedProtocol;
+        this.hash = PROTOCOL;
+        this.salt = PROTOCOL;
+        this.cryptoKey = PROTOCOL;
         this.keys = keys;
-        updateHash(MultiDeviceCypher.handshakePrologue());
+        this.counter = 0;
+        updateHash(CipherUtils.handshakePrologue());
     }
 
     @SneakyThrows
     public void updateHash(byte @NonNull [] data) {
         var input = hash.append(of(data));
-        this.hash = CypherUtils.sha256(input);
+        this.hash = CipherUtils.sha256(input);
     }
 
     @SneakyThrows
     public byte[] cypher(byte @NonNull [] bytes, boolean encrypt) {
-        var cipher = MultiDeviceCypher.aesGmc(cryptoKey.data(), hash.data(), counter++, encrypt);
-        var result = MultiDeviceCypher.aesGmcEncrypt(cipher, bytes);
+        var aes = new AesGmc();
+        aes.initialize(cryptoKey.data(), hash.data(), counter++, encrypt);
+        var cyphered = aes.processBytes(bytes);
         if(!encrypt){
             updateHash(bytes);
-            return result;
+            return cyphered;
         }
 
-        updateHash(result);
-        return result;
+        updateHash(cyphered);
+        return cyphered;
     }
 
     public void finish()  {
@@ -60,13 +61,7 @@ public class NoiseHandshake implements Cloneable {
     }
 
     private BinaryArray extractAndExpandWithHash(@NonNull BinaryArray key) {
-        var extracted = CypherUtils.hkdfExtract(key, salt.data());
-        return CypherUtils.hkdfExpand(extracted, null, 64);
-    }
-
-    @Override
-    public NoiseHandshake clone() throws CloneNotSupportedException {
-        super.clone();
-        return new NoiseHandshake(keys, of(Arrays.clone(hash.data())), of(Arrays.clone(salt.data())), of(Arrays.clone(cryptoKey.data())), counter);
+        var extracted = CipherUtils.hkdfExtract(key, salt.data());
+        return CipherUtils.hkdfExpand(extracted, null, 64);
     }
 }

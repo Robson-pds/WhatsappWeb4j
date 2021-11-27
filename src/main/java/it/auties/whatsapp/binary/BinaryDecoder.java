@@ -45,7 +45,7 @@ public class BinaryDecoder{
         var token = binary.readUInt8();
         var size = readListSize(token);
         if (size == 0) {
-            throw new IllegalArgumentException("Failed to decode node: node cannot be empty");
+            throw new IllegalArgumentException("Failed to decode body: body cannot be empty");
         }
 
         var description = decodeString();

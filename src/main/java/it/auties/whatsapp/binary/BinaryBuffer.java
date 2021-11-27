@@ -17,6 +17,7 @@ import java.util.function.Consumer;
 @AllArgsConstructor
 @Data
 @Accessors(fluent = true)
+@SuppressWarnings({"UnusedReturnValue", "unused"}) // UnusedReturnValue: Chaining, unused: might need them in the future
 public final class BinaryBuffer {
     private ByteBuffer buffer;
 
@@ -154,7 +155,7 @@ public final class BinaryBuffer {
     private BinaryBuffer write(Consumer<ByteBuffer> consumer, int size) {
         var temp = ByteBuffer.allocate(size);
         if (buffer.position() + size + 1 >= buffer.limit()) {
-            reserve(buffer.limit() * 2);
+            throw new IndexOutOfBoundsException("Out of space");
         }
 
         consumer.accept(temp);
@@ -169,13 +170,6 @@ public final class BinaryBuffer {
 
     public BinaryBuffer writeString(String in) {
         return writeBytes(in.getBytes(StandardCharsets.UTF_8));
-    }
-
-    private BinaryBuffer reserve(int size) {
-        var resized = ByteBuffer.allocate(Math.max(size, 128));
-        for(var entry : readWrittenBytes()) resized.put(entry);
-        this.buffer = resized;
-        return this;
     }
 
     private <N extends Number> N checkUnsigned(N number) {

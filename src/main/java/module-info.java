@@ -10,8 +10,6 @@ open module it.auties.whatsapp4j {
     requires jakarta.websocket;
     requires it.auties.protoc.api;
     requires com.google.zxing;
-    requires com.google.protobuf;
-    requires com.google.protobuf.util;
     requires signal.protocol.java;
     requires io.github.classgraph;
     requires java.net.http;

@@ -1,5 +1,6 @@
 package it.auties.whatsapp.api;
 
+import it.auties.whatsapp.api.RegisterListener.Scanner;
 import it.auties.whatsapp.manager.WhatsappStore;
 import it.auties.whatsapp.protobuf.chat.Chat;
 import it.auties.whatsapp.protobuf.chat.GroupAction;
@@ -12,7 +13,6 @@ import it.auties.whatsapp.protobuf.info.MessageInfo;
 import it.auties.whatsapp.protobuf.message.model.ContextualMessage;
 import it.auties.whatsapp.protobuf.message.model.Message;
 import it.auties.whatsapp.protobuf.model.Node;
-import it.auties.whatsapp.api.RegisterListener.Scanner;
 import it.auties.whatsapp.utils.Validate;
 import lombok.NonNull;
 

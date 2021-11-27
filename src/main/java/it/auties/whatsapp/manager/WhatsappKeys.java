@@ -6,12 +6,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import it.auties.whatsapp.binary.BinaryArray;
+import it.auties.whatsapp.cipher.Cipher;
 import it.auties.whatsapp.protobuf.contact.ContactId;
 import it.auties.whatsapp.protobuf.model.IdentityKeyPair;
 import it.auties.whatsapp.protobuf.model.SignedKeyPair;
 import it.auties.whatsapp.utils.KeyPairDeserializer;
 import it.auties.whatsapp.utils.KeyPairSerializer;
-import it.auties.whatsapp.utils.*;
 import lombok.Data;
 import lombok.NonNull;
 import lombok.SneakyThrows;
@@ -125,10 +125,10 @@ public class WhatsappKeys {
 
     public WhatsappKeys() {
         this.clientId = BinaryArray.random(16).toBase64();
-        this.keyPair = CipherUtils.randomKeyPair();
-        this.ephemeralKeyPair = CipherUtils.createKeyPair();
-        this.signedIdentityKey = CipherUtils.createKeyPair();
-        this.signedPreKey = CipherUtils.generateSignedPreKey(signedIdentityKey());
+        this.keyPair = Cipher.randomKeyPair();
+        this.ephemeralKeyPair = Cipher.createKeyPair();
+        this.signedIdentityKey = Cipher.createKeyPair();
+        this.signedPreKey = Cipher.generateSignedPreKey(signedIdentityKey());
         this.id = KeyHelper.generateRegistrationId(false);
         this.advSecretKey = Base64.getEncoder().encodeToString(KeyHelper.generateSenderKey());
     }

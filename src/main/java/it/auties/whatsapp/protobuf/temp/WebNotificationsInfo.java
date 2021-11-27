@@ -1,11 +1,16 @@
 package it.auties.whatsapp.protobuf.temp;
 
-import com.fasterxml.jackson.annotation.*;
-import java.util.*;
-
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonPropertyDescription;
 import it.auties.whatsapp.protobuf.info.MessageInfo;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
+
+import java.util.List;
 
 @AllArgsConstructor
 @NoArgsConstructor

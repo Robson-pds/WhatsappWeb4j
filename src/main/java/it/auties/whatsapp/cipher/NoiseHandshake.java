@@ -1,9 +1,7 @@
-package it.auties.whatsapp.socket;
+package it.auties.whatsapp.cipher;
 
 import it.auties.whatsapp.binary.BinaryArray;
 import it.auties.whatsapp.manager.WhatsappKeys;
-import it.auties.whatsapp.utils.AesGmc;
-import it.auties.whatsapp.utils.CipherUtils;
 import lombok.*;
 
 import static it.auties.whatsapp.binary.BinaryArray.empty;
@@ -25,13 +23,13 @@ public class NoiseHandshake {
         this.cryptoKey = PROTOCOL;
         this.keys = keys;
         this.counter = 0;
-        updateHash(CipherUtils.handshakePrologue());
+        updateHash(Cipher.handshakePrologue());
     }
 
     @SneakyThrows
     public void updateHash(byte @NonNull [] data) {
         var input = hash.append(of(data));
-        this.hash = CipherUtils.sha256(input);
+        this.hash = Cipher.sha256(input);
     }
 
     @SneakyThrows
@@ -61,7 +59,7 @@ public class NoiseHandshake {
     }
 
     private BinaryArray extractAndExpandWithHash(@NonNull BinaryArray key) {
-        var extracted = CipherUtils.hkdfExtract(key, salt.data());
-        return CipherUtils.hkdfExpand(extracted, null, 64);
+        var extracted = Cipher.hkdfExtract(key, salt.data());
+        return Cipher.hkdfExpand(extracted, null, 64);
     }
 }

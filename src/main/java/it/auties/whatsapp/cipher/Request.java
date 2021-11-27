@@ -1,11 +1,10 @@
-package it.auties.whatsapp.request;
+package it.auties.whatsapp.cipher;
 
 import it.auties.protobuf.encoder.ProtobufEncoder;
 import it.auties.whatsapp.binary.BinaryEncoder;
 import it.auties.whatsapp.manager.WhatsappKeys;
 import it.auties.whatsapp.manager.WhatsappStore;
 import it.auties.whatsapp.protobuf.model.Node;
-import it.auties.whatsapp.utils.CipherUtils;
 import it.auties.whatsapp.utils.WhatsappUtils;
 import jakarta.websocket.SendResult;
 import jakarta.websocket.Session;
@@ -70,7 +69,7 @@ public class Request {
      * @return this request
      */
     public @NonNull CompletableFuture<Node> send(@NonNull Session session, @NonNull WhatsappKeys keys, @NonNull WhatsappStore store){
-        var encryptedBody = CipherUtils.cipherMessage(parseBodyOrThrow(), keys.writeKey(), store.writeCounter().getAndIncrement());
+        var encryptedBody = Cipher.cipherMessage(parseBodyOrThrow(), keys.writeKey(), store.writeCounter().getAndIncrement());
         session.getAsyncRemote()
                 .sendBinary(encryptedBody.toBuffer(), result -> handleSendResult(store, result));
         return future;

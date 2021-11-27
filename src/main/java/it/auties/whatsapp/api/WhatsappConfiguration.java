@@ -8,8 +8,6 @@ import lombok.Data;
 import lombok.NonNull;
 import lombok.experimental.Accessors;
 
-import java.util.function.Function;
-
 /**
  * A configuration class used to specify the behaviour of {@link Whatsapp}.
  * Each field is immutable, this means that once this class has been initialized, cannot be changed.

@@ -1,5 +1,6 @@
 package it.auties.whatsapp.protobuf.model;
 
+import it.auties.whatsapp.cipher.Request;
 import it.auties.whatsapp.utils.Nodes;
 import lombok.NonNull;
 
@@ -8,20 +9,21 @@ import java.util.*;
 /**
  * An immutable model class that represents the primary unit used by WhatsappWeb's WebSocket to communicate with the client.
  *
- * @param description a non-null String that describes the data that this object holds in its {@code attributes} and {@code content}
- * @param attributes       a non-null Map of strings that describe additional information related to the content of this object or an encoded object when sending a message a protobuf object is not optimal
+ * @param description a non-null String that describes the content of this node
+ * @param attributes  a non-null Map of object attributes
  * @param content     a nullable object, usually a List of {@link Node}, a {@link String} or a {@link Number}
  */
 public record Node(@NonNull String description,
                    @NonNull Map<String, Object> attributes, Object content) {
-
     /**
      * Constructs a Node that only provides a non-null tag
      *
      * @param description a non-null String that describes the data that this object holds
+     * @param attributes  a non-null Map of object attributes
+     * @param content     a nullable object, usually a List of {@link Node}, a {@link String} or a {@link Number}
      */
-    public Node(@NonNull String description){
-        this(description, Map.of(), null);
+    public static Node of(@NonNull String description, @NonNull Map<String, Object> attributes, Object content) {
+        return new Node(description, attributes, content);
     }
 
     /**
@@ -30,8 +32,38 @@ public record Node(@NonNull String description,
      * @param description a non-null String that describes the data that this object holds
      * @param content     a nullable object, usually a List of {@link Node}, a {@link String} or a {@link Number}
      */
-    public Node(@NonNull String description, Object content) {
-        this(description, Map.of(), content);
+    public static Node of(@NonNull String description, Object content) {
+        return new Node(description, Map.of(), content);
+    }
+
+    /**
+     * Constructs a Node that only provides a non-null tag
+     *
+     * @param description a non-null String that describes the data that this object holds
+     * @param attributes  a non-null Map of strings that describe additional information related to the content of this object or an encoded object when sending a message a protobuf object is not optimal
+     * @param children    the non-null children of this node
+     */
+    public static Node of(@NonNull String description, @NonNull Map<String, Object> attributes, Node... children) {
+        return new Node(description, attributes, List.of(children));
+    }
+
+    /**
+     * Constructs a Node that only provides a non-null tag
+     *
+     * @param description a non-null String that describes the data that this object holds
+     */
+    public static Node of(@NonNull String description){
+        return of(description, (Node) null);
+    }
+
+    /**
+     * Constructs a Node that only provides a non-null tag
+     *
+     * @param description a non-null String that describes the data that this object holds
+     * @param children    the non-null children of this node
+     */
+    public static Node of(@NonNull String description, @NonNull Node... children) {
+        return of(description, Map.of(), children);
     }
 
     /**
@@ -92,5 +124,14 @@ public record Node(@NonNull String description,
         var attributesSize = 2 * attributes.size();
         var contentSize = hasContent() ? 1 : 0;
         return descriptionSize + attributesSize + contentSize;
+    }
+
+    /**
+     * Constructs a new request from this node
+     *
+     * @return a non null request
+     */
+    public Request toRequest(){
+        return Request.of(this);
     }
 }

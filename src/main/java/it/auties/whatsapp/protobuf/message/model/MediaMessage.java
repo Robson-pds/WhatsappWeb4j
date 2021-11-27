@@ -5,7 +5,6 @@ import it.auties.whatsapp.protobuf.message.standard.*;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
-import lombok.experimental.SuperBuilder;
 
 /**
  * A model class that represents a WhatsappMessage sent by a contact and that holds media inside.

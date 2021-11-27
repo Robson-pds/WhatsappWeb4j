@@ -1,4 +1,4 @@
-package it.auties.whatsapp.utils;
+package it.auties.whatsapp.cipher;
 
 import lombok.NonNull;
 import org.bouncycastle.crypto.InvalidCipherTextException;
@@ -9,7 +9,7 @@ import org.bouncycastle.crypto.params.KeyParameter;
 
 import java.nio.ByteBuffer;
 
-public class AesGmc {
+class AesGmc {
     private GCMBlockCipher cipher;
     public void initialize(byte @NonNull [] key, byte[] data, long ivCounter, boolean encrypt){
         var secretKey = new KeyParameter(key);

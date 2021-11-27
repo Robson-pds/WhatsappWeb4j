@@ -1,4 +1,4 @@
-package it.auties.whatsapp.utils;
+package it.auties.whatsapp.cipher;
 
 import it.auties.whatsapp.binary.BinaryArray;
 import it.auties.whatsapp.binary.BinaryBuffer;
@@ -21,10 +21,8 @@ import org.whispersystems.libsignal.ecc.DjbECPrivateKey;
 import org.whispersystems.libsignal.ecc.DjbECPublicKey;
 import org.whispersystems.libsignal.util.KeyHelper;
 
-import javax.crypto.Cipher;
 import javax.crypto.KeyAgreement;
 import javax.crypto.Mac;
-import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import java.security.*;
 import java.security.interfaces.XECPrivateKey;
@@ -39,17 +37,14 @@ import java.util.Objects;
  * TODO: Refactor and migrate off curve25519 library
  */
 @UtilityClass
-public class CipherUtils {
+public class Cipher {
     private final BinaryDecoder DECODER = new BinaryDecoder();
     private final byte[] HANDSHAKE_PROLOGUE = new byte[]{87, 65, 5, 2};
     private final String XDH = "XDH";
     private final String CURVE = "X25519";
     private final String HMAC_SHA256 = "HmacSHA256";
-    private final String AES = "AES";
-    private final String AES_ALGORITHM = "AES/CBC/PKCS5PADDING";
     private final String SHA256 = "SHA-256";
     private final String HKDF = "HKDF-Salt";
-    private final int BLOCK_SIZE = 16;
 
     @SneakyThrows
     public KeyPair randomKeyPair() {
@@ -151,34 +146,6 @@ public class CipherUtils {
     }
 
     @SneakyThrows
-    public BinaryArray aesDecrypt(@NonNull BinaryArray encrypted, @NonNull BinaryArray secretKey) {
-        return aesDecrypt(encrypted.cut(BLOCK_SIZE), encrypted, secretKey);
-    }
-
-    @SneakyThrows
-    public BinaryArray aesDecrypt(@NonNull BinaryArray iv, @NonNull BinaryArray encrypted, @NonNull BinaryArray secretKey) {
-        final var cipher = Cipher.getInstance(AES_ALGORITHM);
-        final var keySpec = new SecretKeySpec(secretKey.data(), AES);
-        cipher.init(Cipher.DECRYPT_MODE, keySpec, new IvParameterSpec(iv.data()));
-        return BinaryArray.of(cipher.doFinal(encrypted.slice(BLOCK_SIZE).data()));
-    }
-
-    @SneakyThrows
-    public BinaryArray aesEncrypt(byte @NonNull [] decrypted, @NonNull BinaryArray encKey) {
-        return aesEncrypt(BinaryArray.random(BLOCK_SIZE), decrypted, encKey, true);
-    }
-
-    @SneakyThrows
-    public BinaryArray aesEncrypt(@NonNull BinaryArray iv, byte @NonNull [] decrypted, @NonNull BinaryArray encKey, boolean withIv) {
-        final var cipher = Cipher.getInstance(AES_ALGORITHM);
-        final var keySpec = new SecretKeySpec(encKey.data(), AES);
-        cipher.init(Cipher.ENCRYPT_MODE, keySpec, new IvParameterSpec(iv.data()));
-
-        var result = BinaryArray.of(cipher.doFinal(decrypted));
-        return withIv ? iv.append(result) : result;
-    }
-
-    @SneakyThrows
     public byte[] sha256(byte @NonNull [] data) {
         var digest = MessageDigest.getInstance(SHA256);
         return digest.digest(data);
@@ -224,9 +191,10 @@ public class CipherUtils {
     }
 
     public SignedKeyPair generateSignedPreKey(IdentityKeyPair identityKeyPair) {
+        var id = BinaryArray.of(1, 3).data();
         var keyPair = createKeyPair();
         var publicKey = BinaryArray.of((byte) 5).append(keyPair.publicKey()).data();
         var signature = Curve25519.getInstance(Curve25519.BEST).calculateSignature(identityKeyPair.privateKey(), publicKey);
-        return new SignedKeyPair(1, keyPair, signature);
+        return new SignedKeyPair(id, keyPair, signature);
     }
 }

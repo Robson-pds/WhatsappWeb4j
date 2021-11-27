@@ -1,9 +1,7 @@
 package it.auties.whatsapp.utils;
 
 import com.google.zxing.BarcodeFormat;
-import com.google.zxing.EncodeHintType;
 import com.google.zxing.MultiFormatWriter;
-import com.google.zxing.WriterException;
 import com.google.zxing.common.BitMatrix;
 import lombok.NonNull;
 import lombok.SneakyThrows;
@@ -14,7 +12,7 @@ import java.util.Objects;
 /**
  * A utility class used to generate QR codes to authenticate with whatsapp
  */
-public class WhatsappQRCode {
+public class Qr {
     private String ref;
     private static final int SIZE = 50;
     private static final MultiFormatWriter WRITER = new MultiFormatWriter();

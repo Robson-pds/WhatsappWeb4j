@@ -1,9 +1,10 @@
 package it.auties.whatsapp.binary;
 
-import lombok.*;
+import lombok.NonNull;
+import lombok.Value;
 import lombok.experimental.Accessors;
 
-import static it.auties.whatsapp.binary.BinaryArray.*;
+import static it.auties.whatsapp.binary.BinaryArray.of;
 
 /**
  * A wrapper object used to represent messages received by Whatsapp
